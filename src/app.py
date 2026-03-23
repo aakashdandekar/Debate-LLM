@@ -1,6 +1,6 @@
 import io
 from datetime import datetime, timezone
-from fastapi import FastAPI, HTTPException, File, UploadFile, Depends, Form, Query, Request
+from fastapi import FastAPI, HTTPException, File, UploadFile, Depends, Form, Query
 from fastapi.responses import RedirectResponse
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.templating import Jinja2Templates
@@ -12,25 +12,12 @@ from src.auth import hash, check_hash, get_current_user, create_access_token
 from src.ai import get_context, modelResponse, judge_debate, response
 
 app = FastAPI()
-
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=["*"],
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
-
 app.mount("/static", StaticFiles(directory="static"), name="static")
 
 templates = Jinja2Templates(directory="templates")
 
-@app.get("/")
-async def serve_frontend(request: Request):
-    return templates.TemplateResponse("index.html", {"request": request})
-
 @app.post('/register')
-async def register_user(user: User, request: Request):
+async def register_user(user: User):
     try:
         collection = database["user"]
 
@@ -55,7 +42,7 @@ async def register_user(user: User, request: Request):
 
         token = create_access_token(str(result.inserted_id))
 
-        return templates.TemplateResponse('index.html', {"request": request})
+        return templates.TemplateResponse('index.html')
 
     except HTTPException:
         raise

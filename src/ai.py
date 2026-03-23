@@ -47,8 +47,6 @@ async def modelResponse(argument: str, user_id: str) -> str:
     topic = result.get("topic", "")
     role = result.get("role", "")
 
-    role = "for" if role == "against" else "against"
-
     template = """
         Topic: {topic}
         Your Role: {role}
