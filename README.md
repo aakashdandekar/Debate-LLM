@@ -7,6 +7,7 @@ Debate-LLM is an advanced, interactive artificial intelligence debating API deve
 - **Secure Authentication**: Robust user registration and session management implemented via JSON Web Tokens (JWT).
 - **Interactive Argumentation**: Facilities for initializing debates on arbitrary topics with dynamic generation of counter-arguments.
 - **Microservice LLM Architecture**: Utilizes specialized local models for distinct structural roles within the debate framework:
+  - *Topic Generation*: Deploys **Ollama (tinyllama)** for dynamic creation of diverse debate topics.
   - *Argument Generation*: Employs **Ollama (gemma2:2b)** to formulate and articulate counter-arguments in response to user propositions.
   - *Adjudication and Summarization*: Utilizes **Ollama (phi3)** to maintain conversational context and serve as the final judicial entity.
 - **Contextual Awareness**: Systematically records and analyzes conversation history to ensure the issuance of contextually pertinent arguments.
@@ -23,10 +24,11 @@ Debate-LLM is an advanced, interactive artificial intelligence debating API deve
 Prior to deployment, ensure the host environment satisfies the following dependencies:
 - Python 3.8 or higher
 - [MongoDB](https://www.mongodb.com/) (Local instance or MongoDB Atlas cluster)
-- [Ollama](https://ollama.ai/) functioning locally, provisioned with the necessary models:
+- [Ollama](https://ollama.com/) functioning locally, provisioned with the necessary models:
   ```bash
   ollama run gemma2:2b
   ollama run phi3
+  ollama run tinyllama
   ```
 
 ## Installation Instructions
@@ -34,7 +36,8 @@ Prior to deployment, ensure the host environment satisfies the following depende
 1. **Repository Cloning**:
    Navigate to your preferred directory and clone the repository:
    ```bash
-   cd Debate-LLM
+   git clone <your-repo-url>
+   cd AI_Debate_System
    ```
 
 2. **Environment Initialization** (Recommended):
@@ -83,9 +86,10 @@ The application programming interface (API) will subsequently be accessible at `
 
 ### Debate Operations
 *(Note: Exertion of the following endpoints mandates a valid `Authorization: Bearer <token>` header)*
-- `POST /start-debate`: Initializes a new debate context predicated on the provided `topic`.
-- `GET /debate/system-response`: Submits a `user_response` (argument) and retrieves the generated counter-argument.
-- `GET /end-debate`: Terminates the current debate. The AI adjudicator processes the discourse and emits a structured assessment delineating the victor, score, rationale, and feedback.
+- `GET /get-topic`: Yields a single-line generated topic for the debate.
+- `POST /system/start-debate`: Initializes a new debate context predicated on the provided `topic` and `role`.
+- `GET /system/debate/system-response`: Submits a `user_response` (argument) and retrieves the generated counter-argument.
+- `GET /system/end-debate`: Terminates the current debate. The AI adjudicator processes the discourse and emits a structured assessment delineating the victor, score, rationale, and feedback.
 
 ## License
 This project is licensed under the [Apache License 2.0](LICENSE).
