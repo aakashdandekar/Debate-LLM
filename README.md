@@ -1,86 +1,91 @@
 # Debate-LLM
 
-An intelligent, interactive AI Debating API built with **FastAPI**, **MongoDB**, and **Langchain**. This system allows users to engage in a structured debate against AI models, presenting arguments and receiving counter-arguments. Once the debate concludes, an AI judge evaluates the performance of both the user and the system, providing a final verdict, score, and constructive feedback.
+## Overview
+Debate-LLM is an advanced, interactive artificial intelligence debating API developed using FastAPI, MongoDB, and LangChain. The system provides a platform for users to engage in structured, real-time debates against large language models (LLMs). Users can present arguments, receive logically coherent counter-arguments, and, upon concluding the debate, obtain a comprehensive evaluation from an impartial AI adjudicator. This evaluation encompasses a final verdict, quantitative scoring, and detailed, constructive feedback.
 
-## Features
-- **User Authentication**: Secure user registration and login using JWT (JSON Web Tokens).
-- **Interactive Debate**: Start a debate on any topic and receive dynamic counter-arguments.
-- **Multi-LLM Support**: Integrates with multiple LLMs to power different parts of the debate:
-  - **Ollama (gemma2:2b)** for generating counter-arguments against the user.
-  - **Ollama (phi3)** for summarizing the context and acting as the final judge.
-  - Setup available for **Google Gemini (gemini-2.0-flash-pro)** and **Groq (qwen3.5)**.
-- **Context Awareness**: Maintains the history of the conversation to provide contextually relevant arguments.
-- **Debate Evaluation**: Impartial AI judge evaluates the debate based on logic, reasoning, evidence, persuasiveness, and clarity to declare a winner.
+## Key Features
+- **Secure Authentication**: Robust user registration and session management implemented via JSON Web Tokens (JWT).
+- **Interactive Argumentation**: Facilities for initializing debates on arbitrary topics with dynamic generation of counter-arguments.
+- **Microservice LLM Architecture**: Utilizes specialized local models for distinct structural roles within the debate framework:
+  - *Argument Generation*: Employs **Ollama (gemma2:2b)** to formulate and articulate counter-arguments in response to user propositions.
+  - *Adjudication and Summarization*: Utilizes **Ollama (phi3)** to maintain conversational context and serve as the final judicial entity.
+- **Contextual Awareness**: Systematically records and analyzes conversation history to ensure the issuance of contextually pertinent arguments.
+- **Comprehensive Evaluation**: Concludes debates with a diagnostic review based on predefined criteria, including logical rigor, factual evidence, persuasiveness, and semantic clarity, to impartially declare a winner.
 
-## Tech Stack
-- **Backend Framework**: FastAPI
-- **Database**: MongoDB (via `motor` asynchronous driver)
-- **AI / LLM Orchestration**: LangChain, Ollama, Google GenAI, Groq
-- **Authentication**: Passlib (Bcrypt), Python-JOSE (JWT)
-- **Server**: Uvicorn
+## Architecture and Technology Stack
+- **Application Framework**: FastAPI
+- **Database Subsystem**: MongoDB (integrated via the `motor` asynchronous engine)
+- **Model Orchestration**: LangChain Core, Ollama 
+- **Security Infrastructure**: Passlib (Bcrypt hashing), Python-JOSE (JWT implementation)
+- **Application Server**: Uvicorn
 
-## Prerequisites
-Before you begin, ensure you have the following installed:
-- Python 3.8+
-- [MongoDB](https://www.mongodb.com/) (Running locally or a MongoDB Atlas URI)
-- [Ollama](https://ollama.ai/) installed and running locally with the following models pulled:
+## System Prerequisites
+Prior to deployment, ensure the host environment satisfies the following dependencies:
+- Python 3.8 or higher
+- [MongoDB](https://www.mongodb.com/) (Local instance or MongoDB Atlas cluster)
+- [Ollama](https://ollama.ai/) functioning locally, provisioned with the necessary models:
   ```bash
   ollama run gemma2:2b
   ollama run phi3
   ```
 
-## Installation
+## Installation Instructions
 
-1. **Clone the repository** (or navigate to the project directory):
+1. **Repository Cloning**:
+   Navigate to your preferred directory and clone the repository:
    ```bash
    cd Debate-LLM
    ```
 
-2. **Create and activate a virtual environment** (optional but recommended):
+2. **Environment Initialization** (Recommended):
+   Establish and activate an isolated Python virtual environment:
    ```bash
    python -m venv .venv
-   source .venv/bin/activate  # On Windows use: .venv\Scripts\activate
+   source .venv/bin/activate  # Implementation on Windows: .venv\Scripts\activate
    ```
 
-3. **Install dependencies**:
+3. **Dependency Resolution**:
+   Install the requisite Python packages as defined in the project configuration:
    ```bash
    pip install -r requirements.txt
    ```
 
-4. **Environment Variables Config**:
-   Create a `.env` file in the root directory and add the following configuration:
+4. **Environment Configuration**:
+   Create a standard `.env` file within the system's root directory and append the necessary configuration parameters:
    ```env
-   # Database Configuration
-   DATABASE_URL=mongodb://localhost:27017  # Or your MongoDB Atlas URI
+   # Database Connection Parameters
+   DATABASE_URL=mongodb://localhost:27017  # Alternatively, supply your MongoDB Atlas URI
    DATABASE_NAME=ai_debate_db
+   
+   # Security Specifications
+   SECRET_KEY=your_secure_jwt_secret_key
    ```
-   *(Note: The JWT secret key might also need to be configured in `.env` based on `src/auth.py` implementation.)*
 
-## Running the Application
+## Execution Protocol
 
-Start the FastAPI application using Uvicorn:
+Initiate the FastAPI application utilizing the Uvicorn ASGI server:
 
 ```bash
 python main.py
 ```
-Or directly with uvicorn:
+Alternatively, execute the server directly:
 ```bash
 uvicorn src.app:app --host 0.0.0.0 --port 8000 --reload
 ```
 
-The API will be available at `http://localhost:8000`. You can explore and test the API using the interactive Swagger UI at `http://localhost:8000/docs`.
+The application programming interface (API) will subsequently be accessible at `http://localhost:8000`. Comprehensive API documentation and interactive testing facilities are automatically generated and available at `http://localhost:8000/docs`.
 
-## API Endpoints
+## Application Programming Interface (API) Reference
 
-### Authentication
-- `POST /register`: Register a new user (`name`, `email`, `password`).
-- `POST /login`: Authenticate as an existing user and receive an `access_token`.
+### Authentication Endpoints
+- `POST /register`: Registers a novel user entity (requires `name`, `email`, `password`).
+- `POST /login`: Authenticates an existing user and provisions an ephemeral `access_token`.
 
-### Debate Core
-*(These endpoints require the `Authorization: Bearer <token>` header)*
-- `POST /start-debate`: Initialize a new debate providing a `topic`.
-- `GET /debate/system-response`: Submit your `user_response` (argument) and receive the AI's counter-argument.
-- `GET /end-debate`: Conclude the debate. The AI judge evaluates the conversation and returns the winner, score, feedback, and reasoning.
+### Debate Operations
+*(Note: Exertion of the following endpoints mandates a valid `Authorization: Bearer <token>` header)*
+- `POST /start-debate`: Initializes a new debate context predicated on the provided `topic`.
+- `GET /debate/system-response`: Submits a `user_response` (argument) and retrieves the generated counter-argument.
+- `GET /end-debate`: Terminates the current debate. The AI adjudicator processes the discourse and emits a structured assessment delineating the victor, score, rationale, and feedback.
 
 ## License
-[Apache License 2.0](LICENSE)
+This project is licensed under the [Apache License 2.0](LICENSE).
