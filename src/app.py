@@ -1,20 +1,36 @@
 import io
-from PIL import Image
 from datetime import datetime, timezone
-from fastapi import FastAPI, HTTPException, File, UploadFile, Depends, Form, Query
+from fastapi import FastAPI, HTTPException, File, UploadFile, Depends, Form, Query, Request
 from fastapi.responses import RedirectResponse
-from fastapi.concurrency import run_in_threadpool
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.templating import Jinja2Templates
+from fastapi.staticfiles import StaticFiles
 from bson import ObjectId
 from src.db import database
 from src.schemas import User, Login, Context_history
 from src.auth import hash, check_hash, get_current_user, create_access_token
-from src.ai import get_context, modelResponse, judge_debate
+from src.ai import get_context, modelResponse, judge_debate, response
 
 app = FastAPI()
 
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+app.mount("/static", StaticFiles(directory="static"), name="static")
+
+templates = Jinja2Templates(directory="templates")
+
+@app.get("/")
+async def serve_frontend(request: Request):
+    return templates.TemplateResponse("index.html", {"request": request})
+
 @app.post('/register')
-async def register_user(user: User):
+async def register_user(user: User, request: Request):
     try:
         collection = database["user"]
 
@@ -39,7 +55,7 @@ async def register_user(user: User):
 
         token = create_access_token(str(result.inserted_id))
 
-        return RedirectResponse(url="/login", status_code=308)
+        return templates.TemplateResponse('index.html', {"request": request})
 
     except HTTPException:
         raise
@@ -73,8 +89,12 @@ async def login_user(login: Login):
         print(f"Error: {e}")
         raise HTTPException(status_code=500, detail="Internal Server Error")
 
-@app.post('/start-debate')
-async def start_debate(topic: str, current_user: str = Depends(get_current_user)):
+@app.get('/get-topic')
+async def get_topic():
+    return await response("Generate one topic for debate and describe it in one line")
+
+@app.post('/system/start-debate')
+async def start_system_debate(topic: str, role: str, current_user: str = Depends(get_current_user)):
     try:
         context_history_collection = database["context_history"]
 
@@ -82,6 +102,8 @@ async def start_debate(topic: str, current_user: str = Depends(get_current_user)
             {"user_id": current_user},
             {
                 "$set": {
+                    "topic": topic,
+                    "role": role,
                     "active_debate": topic,
                     "context": ""
                 }
@@ -98,7 +120,7 @@ async def start_debate(topic: str, current_user: str = Depends(get_current_user)
         print(f"Error: {e}")
         raise HTTPException(status_code=500, detail="Internal Server Error")
 
-@app.get('/debate/system-response')
+@app.get('/system/debate/system-response')
 async def system_response(user_response: str, current_user: str = Depends(get_current_user)):
     try:
         response = await modelResponse(argument=user_response, user_id=current_user)
@@ -126,8 +148,8 @@ async def system_response(user_response: str, current_user: str = Depends(get_cu
         print(f"Error: {e}")
         raise HTTPException(status_code=500, detail="Internal Server Error")
 
-@app.get("/end-debate")
-async def end_debate(current_user: str = Depends(get_current_user)):
+@app.get("/system/end-debate")
+async def end_system_debate(current_user: str = Depends(get_current_user)):
     try:
         context_history_collection = database["context_history"]
         verdict = await judge_debate(current_user)
