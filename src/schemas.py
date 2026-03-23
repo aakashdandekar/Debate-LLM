@@ -11,6 +11,8 @@ class Login(BaseModel):
 
 class Context_history(BaseModel):
     user_id: str
+    topic: str
+    role: str
     active_debate: str
     context: str
 

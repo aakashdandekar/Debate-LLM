@@ -2,35 +2,33 @@ import re
 import os
 import json
 from src.db import database
-from langchain_google_genai import ChatGoogleGenerativeAI
 from langchain_core.prompts import PromptTemplate
 from bson import ObjectId
 from src.schemas import Context_history
 from langchain_ollama import OllamaLLM
-from langchain_groq import ChatGroq
 from langchain_core.output_parsers import StrOutputParser
-
-gemini_llm = ChatGoogleGenerativeAI(
-    model="gemini-2.0-flash-pro",
-    api_key=os.getenv("API_KEY")
-)
 
 ollama_gemma2_llm = OllamaLLM(model="gemma2:2b")
 ollama_phi3_llm = OllamaLLM(model="phi3")
+ollama_tinyllama_llm = OllamaLLM(model="tinyllama")
 
-groq_llm = ChatGroq(
-    model="qwen3.5",
-    api_key=os.getenv("GROQ_API")
-)
+async def response(template: str):
+    prompt = PromptTemplate(
+        template=template
+    )
+
+    chain = prompt | ollama_tinyllama_llm | StrOutputParser()
+
+    return await chain.ainvoke({})
 
 
 async def get_context(context: str) -> str:
-    prompt_template = """
+    template = """
         Conversation: {context}
         Generate a paragraph of approximately 200-400 words describing to the context.
     """
     prompt = PromptTemplate(
-        template=prompt_template,
+        template=template,
         input_variables=['context']
     )
 
@@ -46,7 +44,14 @@ async def modelResponse(argument: str, user_id: str) -> str:
     context = result.get("context", "") if result else ""
     context_summary = await get_context(context)
 
+    topic = result.get("topic", "")
+    role = result.get("role", "")
+
+    role = "for" if role == "against" else "against"
+
     template = """
+        Topic: {topic}
+        Your Role: {role}
         You are a professional debater. Your job is to argue AGAINST whatever the user says.
         No matter what they claim, challenge it with strong counter-arguments.
         Be direct, logical, and confident. Keep it to 3-4 sentences.
@@ -60,12 +65,12 @@ async def modelResponse(argument: str, user_id: str) -> str:
 
     prompt = PromptTemplate(
         template=template,
-        input_variables=['argument', 'context_summary']
+        input_variables=['role', 'topic', 'argument', 'context_summary']
     )
 
     chain = prompt | ollama_gemma2_llm | StrOutputParser()
 
-    return await chain.ainvoke({"argument": argument, "context_summary": context_summary})
+    return await chain.ainvoke({"role": role, "topic": topic, "argument": argument, "context_summary": context_summary})
 
 async def judge_debate(user_id: str):
     context_collection = database["context_history"]
