@@ -14,11 +14,11 @@ Debate-LLM is an advanced, interactive artificial intelligence debating API deve
 - **Comprehensive Evaluation**: Concludes debates with a diagnostic review based on predefined criteria, including logical rigor, factual evidence, persuasiveness, and semantic clarity, to impartially declare a winner.
 
 ## Architecture and Technology Stack
-- **Application Framework**: FastAPI
-- **Database Subsystem**: MongoDB (integrated via the `motor` asynchronous engine)
+- **Backend Framework**: FastAPI
+- **Database**: MongoDB (integrated via the `motor` asynchronous engine)
 - **Model Orchestration**: LangChain Core, Ollama 
 - **Security Infrastructure**: Passlib (Bcrypt hashing), Python-JOSE (JWT implementation)
-- **Application Server**: Uvicorn
+- **Server**: Uvicorn
 
 ## System Prerequisites
 Prior to deployment, ensure the host environment satisfies the following dependencies:
