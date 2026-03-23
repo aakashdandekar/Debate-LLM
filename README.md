@@ -37,7 +37,7 @@ Prior to deployment, ensure the host environment satisfies the following depende
    Navigate to your preferred directory and clone the repository:
    ```bash
    git clone <your-repo-url>
-   cd AI_Debate_System
+   cd Debate_LLM
    ```
 
 2. **Environment Initialization** (Recommended):
@@ -58,7 +58,7 @@ Prior to deployment, ensure the host environment satisfies the following depende
    ```env
    # Database Connection Parameters
    DATABASE_URL=mongodb://localhost:27017  # Alternatively, supply your MongoDB Atlas URI
-   DATABASE_NAME=ai_debate_db
+   DATABASE_NAME=debate_llm_db
    
    # Security Specifications
    SECRET_KEY=your_secure_jwt_secret_key
@@ -70,10 +70,6 @@ Initiate the FastAPI application utilizing the Uvicorn ASGI server:
 
 ```bash
 python main.py
-```
-Alternatively, execute the server directly:
-```bash
-uvicorn src.app:app --host 0.0.0.0 --port 8000 --reload
 ```
 
 The application programming interface (API) will subsequently be accessible at `http://localhost:8000`. Comprehensive API documentation and interactive testing facilities are automatically generated and available at `http://localhost:8000/docs`.
