@@ -49,3 +49,8 @@ watchfiles==1.1.1
 websockets==16.0
 xxhash==3.6.0
 zstandard==0.25.0
+langchain_text_splitters
+langchain_huggingface
+langchain_community
+sentence-transformers
+chromadb

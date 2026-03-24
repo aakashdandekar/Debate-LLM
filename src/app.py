@@ -9,7 +9,7 @@ from bson import ObjectId
 from src.db import database
 from src.schemas import User, Login, Context_history
 from src.auth import hash, check_hash, get_current_user, create_access_token
-from src.ai import get_context, modelResponse, judge_debate, response
+from src.ai import modelResponse, judge_debate, find_topic
 
 app = FastAPI()
 
@@ -91,7 +91,7 @@ async def login_user(login: Login):
 
 @app.get('/get-topic')
 async def get_topic():
-    return await response("Generate one topic for debate and describe it in one line")
+    return await find_topic("Generate one topic for debate and describe it in one line")
 
 @app.post('/system/start-debate')
 async def start_system_debate(topic: str, role: str, current_user: str = Depends(get_current_user)):
