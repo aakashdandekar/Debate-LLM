@@ -1,4 +1,4 @@
-# Multi-Agent LLM Debate System with Automated Adjudication
+# DebateX: Multi-Agent LLM Reasoning System
 
 ## Overview
 Debate-LLM is an advanced, interactive artificial intelligence debating API developed using FastAPI, MongoDB, and LangChain. The system provides a platform for users to engage in structured, real-time debates against large language models (LLMs). Users can present arguments, receive logically coherent counter-arguments, and, upon concluding the debate, obtain a comprehensive evaluation from an impartial AI adjudicator. This evaluation encompasses a final verdict, quantitative scoring, and detailed, constructive feedback.
@@ -37,7 +37,7 @@ Prior to deployment, ensure the host environment satisfies the following depende
    Navigate to your preferred directory and clone the repository:
    ```bash
    git clone <your-repo-url>
-   cd AI_Debate_System
+   cd DebateX
    ```
 
 2. **Environment Initialization** (Recommended):
@@ -58,7 +58,7 @@ Prior to deployment, ensure the host environment satisfies the following depende
    ```env
    # Database Connection Parameters
    DATABASE_URL=mongodb://localhost:27017  # Alternatively, supply your MongoDB Atlas URI
-   DATABASE_NAME=debate_system
+   DATABASE_NAME=debatex
    
    # Security Specifications
    SECRET_KEY=your_secure_jwt_secret_key
