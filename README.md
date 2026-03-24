@@ -1,95 +1,167 @@
-# DebateX: Multi-Agent LLM Reasoning System
+# DebateX — Multi-Agent LLM Reasoning System
 
-## Overview
-DebateX is an advanced, interactive artificial intelligence debating API developed using FastAPI, MongoDB, and LangChain. The system provides a platform for users to engage in structured, real-time debates against large language models (LLMs). Users can present arguments, receive logically coherent counter-arguments, and, upon concluding the debate, obtain a comprehensive evaluation from an impartial AI adjudicator. This evaluation encompasses a final verdict, quantitative scoring, and detailed, constructive feedback.
+> A structured AI debating platform where multiple specialized language models argue, counter, and judge — so you can sharpen your thinking against a formidable opponent.
 
-## Key Features
-- **Secure Authentication**: Robust user registration and session management implemented via JSON Web Tokens (JWT).
-- **Interactive Argumentation**: Facilities for initializing debates on arbitrary topics with dynamic generation of counter-arguments.
-- **Microservice LLM Architecture**: Utilizes specialized local models for distinct structural roles within the debate framework:
-  - *Topic Generation*: Deploys **Ollama (tinyllama)** for dynamic creation of diverse debate topics.
-  - *Argument Generation*: Employs **Ollama (gemma2:2b)** to formulate and articulate counter-arguments in response to user propositions.
-  - *Adjudication and Summarization*: Utilizes **Ollama (phi3)** to maintain conversational context and serve as the final judicial entity.
-- **Contextual Awareness**: Systematically records and analyzes conversation history to ensure the issuance of contextually pertinent arguments.
-- **Comprehensive Evaluation**: Concludes debates with a diagnostic review based on predefined criteria, including logical rigor, factual evidence, persuasiveness, and semantic clarity, to impartially declare a winner.
+---
 
-## Architecture and Technology Stack
-- **Application Framework**: FastAPI
-- **Database Subsystem**: MongoDB (integrated via the `motor` asynchronous engine)
-- **Model Orchestration**: LangChain Core, Ollama 
-- **Security Infrastructure**: Passlib (Bcrypt hashing), Python-JOSE (JWT implementation)
-- **Application Server**: Uvicorn
+## What is DebateX?
 
-## System Prerequisites
-Prior to deployment, ensure the host environment satisfies the following dependencies:
-- Python 3.8 or higher
-- [MongoDB](https://www.mongodb.com/) (Local instance or MongoDB Atlas cluster)
-- [Ollama](https://ollama.com/) functioning locally, provisioned with the necessary models:
-  ```bash
-  ollama run gemma2:2b
-  ollama run phi3
-  ollama run tinyllama
-  ```
+DebateX is a **FastAPI-powered debating API** that pits you against a panel of local LLMs in a structured, multi-turn debate. You pick a topic, take a position, and argue your case — the system fires back with coherent counter-arguments. When the debate ends, an independent AI adjudicator scores the entire exchange and declares a winner with detailed feedback.
 
-## Installation Instructions
+The key design insight is **role-specialized models**: rather than using one LLM for everything, DebateX delegates distinct cognitive tasks to different Ollama models, each tuned to the demands of that role.
 
-1. **Repository Cloning**:
-   Navigate to your preferred directory and clone the repository:
-   ```bash
-   git clone <your-repo-url>
-   cd DebateX
-   ```
+---
 
-2. **Environment Initialization** (Recommended):
-   Establish and activate an isolated Python virtual environment:
-   ```bash
-   python -m venv .venv
-   source .venv/bin/activate  # Implementation on Windows: .venv\Scripts\activate
-   ```
+## How It Works
 
-3. **Dependency Resolution**:
-   Install the requisite Python packages as defined in the project configuration:
-   ```bash
-   pip install -r requirements.txt
-   ```
+```
+User submits argument
+        │
+        ▼
+ [gemma2:2b] ──► generates counter-argument (tracks full conversation history)
+        │
+        ▼
+ (debate continues turn-by-turn)
+        │
+        ▼
+  User ends debate
+        │
+        ▼
+   [phi3] ──► adjudicates: scores logic, evidence, persuasion, clarity → declares winner
+```
 
-4. **Environment Configuration**:
-   Create a standard `.env` file within the system's root directory and append the necessary configuration parameters:
-   ```env
-   # Database Connection Parameters
-   DATABASE_URL=mongodb://localhost:27017  # Alternatively, supply your MongoDB Atlas URI
-   DATABASE_NAME=debatex
-   
-   # Security Specifications
-   SECRET_KEY=your_secure_jwt_secret_key
-   ```
+Topic suggestions are generated on-demand by `tinyllama`, keeping the debate fresh without hardcoded lists.
 
-## Execution Protocol
+---
 
-Initiate the FastAPI application utilizing the Uvicorn ASGI server:
+## Features
+
+- **JWT Authentication** — register, login, and get a bearer token; all debate endpoints are protected
+- **Dynamic Topic Generation** — `GET /get-topic` uses `tinyllama` to surface a fresh debate topic on demand
+- **Stateful Multi-Turn Debate** — full conversation history is maintained across turns for contextually coherent counter-arguments
+- **Specialized Agent Architecture** — three distinct Ollama models handle three distinct roles (see below)
+- **AI Adjudication** — on debate end, `phi3` evaluates the full transcript across four criteria and returns a structured verdict
+- **Async MongoDB Storage** — user accounts and debate sessions persisted via Motor (async MongoDB driver)
+- **Auto-generated API Docs** — interactive Swagger UI available at `/docs` out of the box
+
+---
+
+## Agent Roles
+
+| Agent | Model | Role |
+|---|---|---|
+| Topic Generator | `tinyllama` | Generates diverse, one-line debate topics on demand |
+| Debater | `gemma2:2b` | Formulates counter-arguments grounded in the conversation history |
+| Adjudicator | `phi3` | Evaluates the full debate and issues a scored verdict |
+
+---
+
+## Tech Stack
+
+| Layer | Technology |
+|---|---|
+| API Framework | FastAPI + Uvicorn |
+| LLM Orchestration | LangChain Core + LangChain Ollama |
+| Local Models | Ollama (`tinyllama`, `gemma2:2b`, `phi3`) |
+| Database | MongoDB via Motor (async) |
+| Auth | JWT (python-jose) + Bcrypt (passlib) |
+| Templates / Frontend | Jinja2 + HTML/CSS/JS |
+
+---
+
+## Prerequisites
+
+- Python 3.8+
+- [MongoDB](https://www.mongodb.com/) running locally or a MongoDB Atlas URI
+- [Ollama](https://ollama.com/) installed and running, with the three required models pulled:
+
+```bash
+ollama pull tinyllama
+ollama pull gemma2:2b
+ollama pull phi3
+```
+
+---
+
+## Getting Started
+
+**1. Clone the repository**
+
+```bash
+git clone https://github.com/aakashdandekar/DebateX-Multi-Agent-LLM-Reasoning-System.git
+cd DebateX-Multi-Agent-LLM-Reasoning-System
+```
+
+**2. Create and activate a virtual environment**
+
+```bash
+python -m venv .venv
+source .venv/bin/activate        # Windows: .venv\Scripts\activate
+```
+
+**3. Install dependencies**
+
+```bash
+pip install -r requirements.txt
+```
+
+**4. Configure environment variables**
+
+Create a `.env` file in the project root:
+
+```env
+DATABASE_URL=mongodb://localhost:27017
+DATABASE_NAME=debatex
+SECRET_KEY=your_secure_jwt_secret_key
+```
+
+**5. Start the server**
 
 ```bash
 python main.py
 ```
-Alternatively, execute the server directly:
-```bash
-uvicorn src.app:app --host 0.0.0.0 --port 8000 --reload
+
+The API will be live at `http://localhost:8000`.  
+Interactive docs: `http://localhost:8000/docs`
+
+---
+
+## API Reference
+
+### Authentication
+
+| Method | Endpoint | Description |
+|---|---|---|
+| POST | `/register` | Create a new user account (`name`, `email`, `password`) |
+| POST | `/login` | Authenticate and receive an `access_token` |
+
+### Debate
+
+> All debate endpoints require an `Authorization: Bearer <token>` header.
+
+| Method | Endpoint | Description |
+|---|---|---|
+| GET | `/get-topic` | Get an AI-generated debate topic |
+| POST | `/system/start-debate` | Start a new debate session (`topic`, `role`) |
+| GET | `/system/debate/system-response` | Submit your argument (`user_response`) and get a counter-argument |
+| GET | `/system/end-debate` | End the debate and receive the adjudicator's full verdict |
+
+---
+
+## Project Structure
+
+```
+DebateX/
+├── src/                  # Core application (routes, models, services)
+├── static/               # CSS / JS assets
+├── templates/            # Jinja2 HTML templates
+├── main.py               # Entry point — launches Uvicorn
+├── requirements.txt      # Python dependencies
+└── .env                  # Local config (not committed)
 ```
 
-The application programming interface (API) will subsequently be accessible at `http://localhost:8000`. Comprehensive API documentation and interactive testing facilities are automatically generated and available at `http://localhost:8000/docs`.
-
-## Application Programming Interface (API) Reference
-
-### Authentication Endpoints
-- `POST /register`: Registers a novel user entity (requires `name`, `email`, `password`).
-- `POST /login`: Authenticates an existing user and provisions an ephemeral `access_token`.
-
-### Debate Operations
-*(Note: Exertion of the following endpoints mandates a valid `Authorization: Bearer <token>` header)*
-- `GET /get-topic`: Yields a single-line generated topic for the debate.
-- `POST /system/start-debate`: Initializes a new debate context predicated on the provided `topic` and `role`.
-- `GET /system/debate/system-response`: Submits a `user_response` (argument) and retrieves the generated counter-argument.
-- `GET /system/end-debate`: Terminates the current debate. The AI adjudicator processes the discourse and emits a structured assessment delineating the victor, score, rationale, and feedback.
+---
 
 ## License
-This project is licensed under the [Apache License 2.0](LICENSE).
+
+Licensed under the [Apache License 2.0](LICENSE).
