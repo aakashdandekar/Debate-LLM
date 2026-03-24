@@ -8,9 +8,11 @@ from src.schemas import Context_history
 from langchain_ollama import OllamaLLM
 from langchain_core.output_parsers import StrOutputParser
 
-ollama_gemma2_llm = OllamaLLM(model="gemma2:2b")
-ollama_phi3_llm = OllamaLLM(model="phi3")
-ollama_tinyllama_llm = OllamaLLM(model="tinyllama")
+OLLAMA_BASE_URL = os.getenv("OLLAMA_API_KEY", "localhost:11434")
+
+ollama_gemma2_llm = OllamaLLM(model="gemma2:2b", base=OLLAMA_BASE_URL)
+ollama_phi3_llm = OllamaLLM(model="phi3", base=OLLAMA_BASE_URL)
+ollama_tinyllama_llm = OllamaLLM(model="tinyllama", base=OLLAMA_BASE_URL)
 
 async def response(template: str):
     prompt = PromptTemplate(
