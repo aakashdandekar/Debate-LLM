@@ -63,12 +63,13 @@ function showView(viewName) {
     }
 }
 
-function showToast(message, type = 'info') {
-    els.toast.textContent = message;
-    els.toast.className = `show ${type}`;
+function showToast(message, type = 'info', fullScreen = false) {
+    const target = fullScreen ? document.getElementById('full-screen-toast') : els.toast;
+    target.textContent = message;
+    target.className = `show ${type}`;
     
     setTimeout(() => {
-        els.toast.className = 'hidden';
+        target.className = 'hidden';
     }, 3000);
 }
 
@@ -236,7 +237,7 @@ async function startDebate() {
         `;
         
         showView('debate');
-        showToast('Debate Started', 'success');
+        showToast('Debate Started', 'success', true);
         
     } catch (error) {
         showToast(error.message, 'error');
@@ -338,7 +339,7 @@ async function endDebate() {
         }
         
         showView('verdict');
-        showToast('Debate Concluded', 'success');
+        showToast('Debate Concluded', 'success', true);
         
     } catch (error) {
         showToast('Error getting verdict', 'error');

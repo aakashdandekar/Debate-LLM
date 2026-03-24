@@ -76,6 +76,7 @@ async def judge_debate(user_id: str):
     context_collection = database["context_history"]
     result = await context_collection.find_one({"user_id": user_id})
 
+    topic = result.get("active_deabte", "")
     context = result.get("context", "")
 
     template = """
@@ -87,6 +88,9 @@ async def judge_debate(user_id: str):
         2. Evidence & Facts - Are claims backed up?
         3. Persuasiveness - How convincing is each side?
         4. Clarity - How clear and concise are the points?
+
+        Topic of Debate:
+        {topic}
 
         Context:
         {context}
@@ -102,12 +106,12 @@ async def judge_debate(user_id: str):
 
     prompt = PromptTemplate(
         template=template,
-        input_variables=['context']
+        input_variables=['topic', 'context']
     )
 
     chain = prompt | ollama_phi3_llm | StrOutputParser()
 
-    response = await chain.ainvoke({"context": context})
+    response = await chain.ainvoke({"topic": topic, "context": context})
     response = re.sub(r"```json|```", "", response).strip()
     
     return json.loads(response)
