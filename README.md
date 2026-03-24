@@ -1,4 +1,6 @@
-# Debate-LLM
+# Debate LLM
+
+**Project ID:** Debate LLM
 
 ## Overview
 Debate-LLM is an advanced, interactive artificial intelligence debating API developed using FastAPI, MongoDB, and LangChain. The system provides a platform for users to engage in structured, real-time debates against large language models (LLMs). Users can present arguments, receive logically coherent counter-arguments, and, upon concluding the debate, obtain a comprehensive evaluation from an impartial AI adjudicator. This evaluation encompasses a final verdict, quantitative scoring, and detailed, constructive feedback.
@@ -14,11 +16,11 @@ Debate-LLM is an advanced, interactive artificial intelligence debating API deve
 - **Comprehensive Evaluation**: Concludes debates with a diagnostic review based on predefined criteria, including logical rigor, factual evidence, persuasiveness, and semantic clarity, to impartially declare a winner.
 
 ## Architecture and Technology Stack
-- **Backend Framework**: FastAPI
-- **Database**: MongoDB (integrated via the `motor` asynchronous engine)
+- **Application Framework**: FastAPI
+- **Database Subsystem**: MongoDB (integrated via the `motor` asynchronous engine)
 - **Model Orchestration**: LangChain Core, Ollama 
 - **Security Infrastructure**: Passlib (Bcrypt hashing), Python-JOSE (JWT implementation)
-- **Server**: Uvicorn
+- **Application Server**: Uvicorn
 
 ## System Prerequisites
 Prior to deployment, ensure the host environment satisfies the following dependencies:
@@ -58,7 +60,7 @@ Prior to deployment, ensure the host environment satisfies the following depende
    ```env
    # Database Connection Parameters
    DATABASE_URL=mongodb://localhost:27017  # Alternatively, supply your MongoDB Atlas URI
-   DATABASE_NAME=debate_llm_db
+   DATABASE_NAME=debate_llm
    
    # Security Specifications
    SECRET_KEY=your_secure_jwt_secret_key
@@ -70,6 +72,10 @@ Initiate the FastAPI application utilizing the Uvicorn ASGI server:
 
 ```bash
 python main.py
+```
+Alternatively, execute the server directly:
+```bash
+uvicorn src.app:app --host 0.0.0.0 --port 8000 --reload
 ```
 
 The application programming interface (API) will subsequently be accessible at `http://localhost:8000`. Comprehensive API documentation and interactive testing facilities are automatically generated and available at `http://localhost:8000/docs`.
