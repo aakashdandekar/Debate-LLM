@@ -1,150 +1,191 @@
-# DebateX — Multi-Agent LLM Reasoning System
+# DebateX — Multi-Agent LLM Reasoning Engine
 
-> A structured AI debating platform where multiple specialized language models argue, counter, and judge — so you can sharpen your thinking against a formidable opponent.
-
----
-
-## What is DebateX?
-
-DebateX is a **FastAPI-powered debating API** that pits you against a panel of local LLMs in a structured, multi-turn debate. You pick a topic, take a position, and argue your case — the system fires back with coherent counter-arguments. When the debate ends, an independent AI adjudicator scores the entire exchange and declares a winner with detailed feedback.
-
-The key design insight is **role-specialized models**: rather than using one LLM for everything, DebateX delegates distinct cognitive tasks to different Ollama models, each tuned to the demands of that role.
+> A high-performance, multi-agent AI system where specialized language models engage in adversarial debate, dynamically retrieve context, and produce structured, scored judgments.
 
 ---
 
-## How It Works
+## Overview
+
+DebateX is a **FastAPI-based multi-agent reasoning system** that simulates structured debates between a user and AI agents. Unlike single-model chat systems, DebateX decomposes reasoning into **role-specific agents**, each optimized for a distinct cognitive function:
+
+* **Topic Generation (fast inference)**
+* **Adversarial Debate (context-aware reasoning)**
+* **Judgment & Scoring (structured evaluation)**
+
+The system integrates **Groq-hosted LLMs**, **vector-based context retrieval**, and **stateful debate memory** to produce coherent, multi-turn argumentation and objective adjudication.
+
+---
+
+## Core Architecture
 
 ```
-User submits argument
-        │
-        ▼
- [gemma2:2b] ──► generates counter-argument (tracks full conversation history)
-        │
-        ▼
- (debate continues turn-by-turn)
-        │
-        ▼
-  User ends debate
-        │
-        ▼
-   [phi3] ──► adjudicates: scores logic, evidence, persuasion, clarity → declares winner
+User Argument
+      │
+      ▼
+[Topic Generator]
+(llama-3.1-8b-instant)
+      │
+      ▼
+[Debate Engine]
+(llama-3.3-70b-versatile + RAG context)
+      │
+      ▼
+[Context Retrieval Layer]
+(ChromaDB + MiniLM embeddings)
+      │
+      ▼
+[Judge Agent]
+(openai/gpt-oss-120b)
+      │
+      ▼
+Structured Verdict (JSON)
 ```
 
-Topic suggestions are generated on-demand by `tinyllama`, keeping the debate fresh without hardcoded lists.
+---
+
+## Key Design Principles
+
+### 1. Role-Specialized LLMs
+
+Each model is assigned a **narrow cognitive responsibility**, improving performance and reducing reasoning drift:
+
+* Fast model → generation
+* Large model → reasoning
+* Independent model → evaluation
+
+---
+
+### 2. Retrieval-Augmented Debate (RAG)
+
+Debate context is:
+
+* Chunked using `RecursiveCharacterTextSplitter`
+* Embedded via `all-MiniLM-L6-v2`
+* Retrieved dynamically using similarity search (`k=5`)
+
+This ensures:
+
+* Context relevance
+* Reduced hallucination
+* Better rebuttal quality
+
+---
+
+### 3. Stateful Multi-Turn Memory
+
+* Full debate history stored in MongoDB
+* Retrieved and compressed per turn
+* Enables **coherent long-form argument chains**
+
+---
+
+### 4. Structured Judgment Output
+
+The judge returns strictly formatted JSON:
+
+```json
+{
+  "winner": "user/system",
+  "user_score": 0-10,
+  "user_feedback": "...",
+  "reasoning": "..."
+}
+```
 
 ---
 
 ## Features
 
-- **JWT Authentication** — register, login, and get a bearer token; all debate endpoints are protected
-- **Dynamic Topic Generation** — `GET /get-topic` uses `tinyllama` to surface a fresh debate topic on demand
-- **Stateful Multi-Turn Debate** — full conversation history is maintained across turns for contextually coherent counter-arguments
-- **Specialized Agent Architecture** — three distinct Ollama models handle three distinct roles (see below)
-- **AI Adjudication** — on debate end, `phi3` evaluates the full transcript across four criteria and returns a structured verdict
-- **Async MongoDB Storage** — user accounts and debate sessions persisted via Motor (async MongoDB driver)
-- **Auto-generated API Docs** — interactive Swagger UI available at `/docs` out of the box
+* **JWT-secured API** — authentication and protected endpoints
+* **Dynamic topic generation** — no static datasets
+* **Adversarial debate engine** — always challenges user stance
+* **RAG-based context injection** — improves argument quality
+* **Multi-model orchestration (Groq)** — optimized per task
+* **Async MongoDB storage** — scalable session persistence
+* **Strict evaluation pipeline** — structured scoring + feedback
 
 ---
 
-## Agent Roles
+## Model Stack
 
-| Agent | Model | Role |
-|---|---|---|
-| Topic Generator | `tinyllama` | Generates diverse, one-line debate topics on demand |
-| Debater | `gemma2:2b` | Formulates counter-arguments grounded in the conversation history |
-| Adjudicator | `phi3` | Evaluates the full debate and issues a scored verdict |
+| Role            | Model                     | Purpose                        |
+| --------------- | ------------------------- | ------------------------------ |
+| Topic Generator | `llama-3.1-8b-instant`    | Fast topic generation          |
+| Debater         | `llama-3.3-70b-versatile` | High-quality counter-arguments |
+| Judge           | `openai/gpt-oss-120b`     | Independent evaluation         |
 
 ---
 
 ## Tech Stack
 
-| Layer | Technology |
-|---|---|
-| API Framework | FastAPI + Uvicorn |
-| LLM Orchestration | LangChain Core + LangChain Ollama |
-| Local Models | Ollama (`tinyllama`, `gemma2:2b`, `phi3`) |
-| Database | MongoDB via Motor (async) |
-| Auth | JWT (python-jose) + Bcrypt (passlib) |
-| Templates / Frontend | Jinja2 + HTML/CSS/JS |
+| Layer         | Technology            |
+| ------------- | --------------------- |
+| Backend       | FastAPI + Uvicorn     |
+| LLM Inference | Groq API              |
+| Orchestration | LangChain Core        |
+| Vector DB     | ChromaDB              |
+| Embeddings    | HuggingFace MiniLM    |
+| Database      | MongoDB (Motor async) |
+| Auth          | JWT + Bcrypt          |
+| Frontend      | Jinja2 + HTML/CSS/JS  |
 
 ---
 
-## Prerequisites
+## Installation
 
-- Python 3.8+
-- [MongoDB](https://www.mongodb.com/) running locally or a MongoDB Atlas URI
-- [Ollama](https://ollama.com/) installed and running, with the three required models pulled:
-
-```bash
-ollama pull tinyllama
-ollama pull gemma2:2b
-ollama pull phi3
-```
-
----
-
-## Getting Started
-
-**1. Clone the repository**
+### 1. Clone Repository
 
 ```bash
 git clone https://github.com/aakashdandekar/DebateX-Multi-Agent-LLM-Reasoning-System.git
 cd DebateX-Multi-Agent-LLM-Reasoning-System
 ```
 
-**2. Create and activate a virtual environment**
+### 2. Setup Environment
 
 ```bash
 python -m venv .venv
-source .venv/bin/activate        # Windows: .venv\Scripts\activate
+source .venv/bin/activate
 ```
 
-**3. Install dependencies**
+### 3. Install Dependencies
 
 ```bash
 pip install -r requirements.txt
 ```
 
-**4. Configure environment variables**
-
-Create a `.env` file in the project root:
+### 4. Configure Environment
 
 ```env
 DATABASE_URL=mongodb://localhost:27017
 DATABASE_NAME=debatex
-SECRET_KEY=your_secure_jwt_secret_key
+SECRET_KEY=your_secret
+GROQ_API_KEY=your_groq_key
 ```
 
-**5. Start the server**
+### 5. Run Server
 
 ```bash
 python main.py
 ```
 
-The API will be live at `http://localhost:8000`.  
-Interactive docs: `http://localhost:8000/docs`
+API: http://localhost:8000
+Docs: http://localhost:8000/docs
 
 ---
 
-## API Reference
+## API Endpoints
 
 ### Authentication
 
-| Method | Endpoint | Description |
-|---|---|---|
-| POST | `/register` | Create a new user account (`name`, `email`, `password`) |
-| POST | `/login` | Authenticate and receive an `access_token` |
+* `POST /register`
+* `POST /login`
 
-### Debate
+### Debate System
 
-> All debate endpoints require an `Authorization: Bearer <token>` header.
-
-| Method | Endpoint | Description |
-|---|---|---|
-| GET | `/get-topic` | Get an AI-generated debate topic |
-| POST | `/system/start-debate` | Start a new debate session (`topic`, `role`) |
-| GET | `/system/debate/system-response` | Submit your argument (`user_response`) and get a counter-argument |
-| GET | `/system/end-debate` | End the debate and receive the adjudicator's full verdict |
+* `GET /get-topic`
+* `POST /system/start-debate`
+* `GET /system/debate/system-response`
+* `GET /system/end-debate`
 
 ---
 
@@ -152,16 +193,34 @@ Interactive docs: `http://localhost:8000/docs`
 
 ```
 DebateX/
-├── src/                  # Core application (routes, models, services)
-├── static/               # CSS / JS assets
-├── templates/            # Jinja2 HTML templates
-├── main.py               # Entry point — launches Uvicorn
-├── requirements.txt      # Python dependencies
-└── .env                  # Local config (not committed)
+├── src/
+│   ├── routes/
+│   ├── services/
+│   ├── db/
+├── static/
+├── templates/
+├── main.py
+├── requirements.txt
+└── .env
 ```
+
+---
+
+## Strategic Differentiation
+
+DebateX is not a chatbot. It is a **multi-agent reasoning system** with:
+
+* Adversarial logic enforcement
+* Context-aware retrieval
+* Independent evaluation layer
+* Structured outputs for downstream systems
+
+This architecture aligns with **next-generation AI systems** where:
+
+> reasoning is decomposed, not centralized.
 
 ---
 
 ## License
 
-Licensed under the [Apache License 2.0](LICENSE).
+Apache License 2.0
