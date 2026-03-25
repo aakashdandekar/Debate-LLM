@@ -1,4 +1,5 @@
 import io
+import traceback
 from datetime import datetime, timezone
 from fastapi import FastAPI, HTTPException, File, UploadFile, Depends, Form, Query, Request
 from fastapi.responses import RedirectResponse
@@ -11,7 +12,9 @@ from src.schemas import User, Login, Context_history
 from src.auth import hash, check_hash, get_current_user, create_access_token
 from src.ai import modelResponse, judge_debate, find_topic
 
-app = FastAPI()
+app = FastAPI(
+    servers=[{"url": "http://localhost:8000"}]
+)
 
 app.add_middleware(
     CORSMiddleware,
@@ -91,12 +94,16 @@ async def login_user(login: Login):
 
 @app.get('/get-topic')
 async def get_topic():
-    return await find_topic("Generate one topic for debate and describe it in one line")
+    return await find_topic()
 
 @app.post('/system/start-debate')
 async def start_system_debate(topic: str, role: str, current_user: str = Depends(get_current_user)):
     try:
         context_history_collection = database["context_history"]
+
+        exist = await context_history_collection.find_one({"user_id": current_user})
+        if exist:
+            raise HTTPException(status_code=400, detail="Debate is already active")
 
         await context_history_collection.update_one(
             {"user_id": current_user},
@@ -163,4 +170,5 @@ async def end_system_debate(current_user: str = Depends(get_current_user)):
 
     except Exception as e:
         print(f"Error: {e}")
+        traceback.print_exc()
         raise HTTPException(status_code=500, detail="Internal Server Error")
