@@ -1,3 +1,4 @@
+import uvicorn
 import io
 import traceback
 from datetime import datetime, timezone
@@ -172,3 +173,6 @@ async def end_system_debate(current_user: str = Depends(get_current_user)):
         print(f"Error: {e}")
         traceback.print_exc()
         raise HTTPException(status_code=500, detail="Internal Server Error")
+
+if __name__ == '__main__':
+    uvicorn.run("src.app:app", host="0.0.0.0", port=8000, reload=True)
