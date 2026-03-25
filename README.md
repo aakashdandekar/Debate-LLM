@@ -38,7 +38,7 @@ User Argument
 (openai/gpt-oss-120b)
       │
       ▼
-Structured Verdict (JSON)
+   Verdict
 ```
 
 ---
