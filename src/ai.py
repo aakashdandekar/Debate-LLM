@@ -1,24 +1,32 @@
 import re
 import os
 import json
-from src.db import database
+import chromadb
 from langchain_core.prompts import PromptTemplate
-from bson import ObjectId
-from src.schemas import Context_history
-from langchain_ollama import OllamaLLM
 from langchain_text_splitters import RecursiveCharacterTextSplitter
 from langchain_huggingface import HuggingFaceEmbeddings
 from langchain_community.vectorstores import Chroma
+from langchain_groq import ChatGroq
+from src.db import database
 from langchain_core.output_parsers import StrOutputParser
 from dotenv import load_dotenv
 
 load_dotenv()
 
-OLLAMA_BASE_URL = os.getenv("OLLAMA_API_KEY", "localhost:11434")
+groq_llama3_instant_llm = ChatGroq(
+    api_key=os.getenv("GROQ_API_KEY"),
+    model_name="llama-3.1-8b-instant"
+)
 
-ollama_gemma2_llm = OllamaLLM(model="gemma2:2b", base=OLLAMA_BASE_URL)
-ollama_phi3_llm = OllamaLLM(model="phi3", base=OLLAMA_BASE_URL)
-ollama_tinyllama_llm = OllamaLLM(model="tinyllama", base=OLLAMA_BASE_URL)
+groq_llama3_versatile_llm = ChatGroq(
+    api_key=os.getenv("GROQ_API_KEY"),
+    model_name="llama-3.3-70b-versatile"
+)
+
+groq_openai_gpt_llm = ChatGroq(
+    api_key=os.getenv("GROQ_API_KEY"),
+    model_name="openai/gpt-oss-120b"
+)
 
 splitter = RecursiveCharacterTextSplitter(
     chunk_size=800,
@@ -30,12 +38,17 @@ embedding_model = HuggingFaceEmbeddings(
     model_name="all-MiniLM-L6-v2"
 )
 
-async def find_topic(template: str):
+async def find_topic():
     prompt = PromptTemplate(
-        template=template
+        template="""
+            Generate one debate topic and describe it in exactly one line.
+            Output plain text only.
+            Do not include any formatting, explanations, or reasoning.
+            The output should contain only the topic followed by a brief one-line description.
+        """
     )
 
-    chain = prompt | ollama_tinyllama_llm | StrOutputParser()
+    chain = prompt | groq_llama3_instant_llm | StrOutputParser()
 
     return await chain.ainvoke({})
 
@@ -65,6 +78,8 @@ async def modelResponse(argument: str, user_id: str) -> str:
         retrieved_docs = retriever.invoke(argument)
             
         context_summary = "\n\n".join([d.page_content for d in retrieved_docs])
+
+        vectorstore.delete_collection()
     else:
         context_summary = ""
 
@@ -88,10 +103,8 @@ async def modelResponse(argument: str, user_id: str) -> str:
         input_variables=['role', 'topic', 'argument', 'context_summary']
     )
 
-    chain = prompt | ollama_gemma2_llm | StrOutputParser()
+    chain = prompt | groq_llama3_versatile_llm | StrOutputParser()
     response = await chain.ainvoke({"role": role, "topic": topic, "argument": argument, "context_summary": context_summary})
-
-    vectorstore.delete_collection()
 
     return response
 
@@ -107,7 +120,6 @@ async def judge_debate(user_id: str):
 
     template = """
         You are a strict debate judge with years of experience.
-        You can favor user over system, System score and user score is very similar.
         You will be given a debate conversation between a User and an AI debater.
         
         Evaluate both sides based on:
@@ -136,6 +148,8 @@ async def judge_debate(user_id: str):
         input_variables=['topic', 'context']
     )
 
+    vectorstore = None
+
     docs = splitter.create_documents([context]) if context else []
     if docs:
         vectorstore = Chroma.from_documents(
@@ -153,11 +167,12 @@ async def judge_debate(user_id: str):
     else:
         context = ""
 
-    chain = prompt | ollama_phi3_llm | StrOutputParser()
+    chain = prompt | groq_openai_gpt_llm | StrOutputParser()
 
     response = await chain.ainvoke({"topic": topic, "context": context})
     response = re.sub(r"```json|```", "", response).strip()
 
-    vectorstore.delete_collection()
-    
+    if vectorstore is not None:
+        vectorstore.delete_collection()
+
     return json.loads(response)
