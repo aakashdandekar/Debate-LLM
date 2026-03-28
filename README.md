@@ -118,6 +118,27 @@ This ensures:
 
 ## Installation
 
+### Prerequisites
+
+Ensure the following are installed before proceeding:
+
+| Tool | Version | Install |
+|------|---------|---------|
+| Python | 3.10+ | [python.org](https://python.org) |
+| Node.js | 18+ | [nodejs.org](https://nodejs.org) |
+| npm | 9+ | Bundled with Node.js |
+| MongoDB | 6+ | [mongodb.com](https://www.mongodb.com) |
+
+Verify your setup:
+
+```bash
+python --version
+node --version
+npm --version
+```
+
+---
+
 ### 1. Clone Repository
 
 ```bash
@@ -143,6 +164,16 @@ pip install -r backend/requirements.txt
 ```bash
 cd frontend
 npm install
+```
+
+> **Note:** `node_modules/` and `dist/` are excluded from the repository (listed in `.gitignore`). You must run `npm install` locally to restore dependencies.
+
+```bash
+# Check installed packages
+npm list --depth=0
+
+# Build for production (outputs to frontend/dist/)
+npm run build
 ```
 
 ### 5. Configure Environment
@@ -220,7 +251,7 @@ DebateX/
 
 ## Strategic Differentiation
 
-DebateX is not a chatbot. It is a **multi-agent reasoning system** with:
+DebateX is a **multi-agent reasoning system** with:
 
 * Adversarial logic enforcement
 * Context-aware retrieval
