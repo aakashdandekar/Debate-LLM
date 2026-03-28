@@ -79,21 +79,6 @@ This ensures:
 
 ---
 
-### 4. Structured Judgment Output
-
-The judge returns strictly formatted JSON:
-
-```json
-{
-  "winner": "user/system",
-  "user_score": 0-10,
-  "user_feedback": "...",
-  "reasoning": "..."
-}
-```
-
----
-
 ## Features
 
 * **JWT-secured API** — authentication and protected endpoints
@@ -120,6 +105,7 @@ The judge returns strictly formatted JSON:
 
 | Layer         | Technology            |
 | ------------- | --------------------- |
+| Frontend      | Vue.js (Vue 3 + Vite) |
 | Backend       | FastAPI + Uvicorn     |
 | LLM Inference | Groq API              |
 | Orchestration | LangChain Core        |
@@ -127,7 +113,6 @@ The judge returns strictly formatted JSON:
 | Embeddings    | HuggingFace MiniLM    |
 | Database      | MongoDB (Motor async) |
 | Auth          | JWT + Bcrypt          |
-| Frontend      | Jinja2 + HTML/CSS/JS  |
 
 ---
 
@@ -147,13 +132,20 @@ python -m venv .venv
 source .venv/bin/activate
 ```
 
-### 3. Install Dependencies
+### 3. Install Backend Dependencies
 
 ```bash
-pip install -r requirements.txt
+pip install -r backend/requirements.txt
 ```
 
-### 4. Configure Environment
+### 4. Install Frontend Dependencies
+
+```bash
+cd frontend
+npm install
+```
+
+### 5. Configure Environment
 
 ```env
 DATABASE_URL=mongodb://localhost:27017
@@ -162,16 +154,25 @@ SECRET_KEY=your_secret
 GROQ_API_KEY=your_groq_key
 ```
 
-### 5. Run Server
+### 6. Run Frontend Dev Server
 
 ```bash
+cd frontend
+npm run dev
+```
+
+Frontend: http://localhost:5173
+
+---
+
+### 7. Run Backend Server
+
+```bash
+cd backend
 python main.py
 ```
 
-API: http://localhost:8000
-Docs: http://localhost:8000/docs
-
----
+Backend: http://localhost:8000
 
 ## API Endpoints
 
@@ -193,15 +194,26 @@ Docs: http://localhost:8000/docs
 
 ```
 DebateX/
-├── src/
-│   ├── routes/
-│   ├── services/
-│   ├── db/
-├── static/
-├── templates/
-├── main.py
-├── requirements.txt
-└── .env
+├── backend/
+│   ├── src/
+│   │   ├── routes/
+│   │   ├── services/
+│   │   ├── db/
+│   ├── main.py
+│   ├── requirements.txt
+│   └── .env
+├── frontend/
+│   ├── src/
+│   │   ├── components/
+│   │   ├── views/
+│   │   ├── router/
+│   │   ├── store/
+│   │   └── main.js
+│   ├── public/
+│   ├── index.html
+│   ├── vite.config.js
+│   └── package.json
+└── README.md
 ```
 
 ---
